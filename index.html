@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Chat Voz ↔ Texto</title>
+
+<style>
+body {
+  margin: 0;
+  background: #000;
+  color: white;
+  font-family: Arial, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Área del chat */
+#chat {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+/* Mensajes */
+.msg {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  margin: 8px 0;
+  font-size: 15px;
+}
+
+.user {
+  background: #444;
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.bot {
+  background: #222;
+  align-self: flex-start;
+}
+
+/* Barra inferior */
+#inputBar {
+  display: flex;
+  padding: 10px;
+  gap: 6px;
+  background: #111;
+}
+
+textarea {
+  flex: 1;
+  resize: none;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 15px;
+}
+
+button {
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.mic { background: #333; color: white; }
+.send { background: white; color: black; }
+</style>
+</head>
+
+<body>
+
+<div id="chat"></div>
+
+<div id="inputBar">
+  <button class="mic" onclick="vozATexto()">🎤</button>
+  <textarea id="texto" rows="1" placeholder="Escribe o habla..."></textarea>
+  <button class="send" onclick="enviar()">➤</button>
+</div>
+
+<script>
+function agregarMensaje(texto, tipo) {
+  const chat = document.getElementById("chat");
+  const msg = document.createElement("div");
+  msg.className = `msg ${tipo}`;
+  msg.textContent = texto;
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// Enviar mensaje
+function enviar() {
+  const textarea = document.getElementById("texto");
+  if (!textarea.value.trim()) return;
+
+  agregarMensaje(textarea.value, "user");
+  textoAVoz(textarea.value);
+  textarea.value = "";
+}
+
+// 🎤 Voz a texto
+function vozATexto() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  recognition.lang = "es-ES";
+  recognition.start();
+
+  recognition.onresult = (event) => {
+    const texto = event.results[0][0].transcript;
+    agregarMensaje(texto, "user");
+    textoAVoz(texto);
+  };
+}
+
+// 🔊 Texto a voz
+function textoAVoz(texto) {
+  const speech = new SpeechSynthesisUtterance(texto);
+  speech.lang = "es-ES";
+  window.speechSynthesis.speak(speech);
+}
+</script>
+
+</body>
+</html>
